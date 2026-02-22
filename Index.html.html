@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TripKrung — วางแผนทริปสั้น</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: #F5FFFE;
+    color: #2D3436;
+    min-height: 100vh;
+  }
+
+  header {
+    background: linear-gradient(135deg, #00B894 0%, #00CEC9 100%);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,184,148,0.2);
+  }
+
+  .logo {
+    font-family: 'Prompt', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+  }
+  .logo span { color: #FDCB6E; }
+
+  .header-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.85);
+    text-align: right;
+    line-height: 1.5;
+  }
+
+  main {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 16px 100px;
+  }
+
+  .section-title {
+    font-family: 'Prompt', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #2D3436;
+  }
+
+  .search-section { margin-bottom: 24px; }
+
+  .search-box { display: flex; gap: 8px; }
+
+  .search-input {
+    flex: 1;
+    padding: 14px 16px;
+    border: 2px solid #DFF5F0;
+    border-radius: 14px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 15px;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    outline: none;
+    transition: border-color 0.2s;
+    color: #2D3436;
+  }
+  .search-input:focus { border-color: #00B894; }
+
+  .btn-add {
+    padding: 14px 20px;
+    background: #00B894;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .btn-add:active { transform: scale(0.96); }
+
+  .suggestions {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    margin-top: 8px;
+    overflow: hidden;
+    display: none;
+    border: 1px solid #DFF5F0;
+  }
+
+  .suggestion-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #F0FAF8;
+  }
+  .suggestion-item:last-child { border-bottom: none; }
+  .suggestion-item:hover { background: #F0FAF8; }
+  .suggestion-name { font-weight: 600; font-size: 14px; color: #2D3436; }
+  .suggestion-region { font-size: 12px; color: #B2BEC3; }
+
+  .chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-top: 12px;
+    scrollbar-width: none;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+
+  .chip {
+    padding: 8px 14px;
+    background: white;
+    border: 1.5px solid #DFF5F0;
+    border-radius: 100px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    color: #2D3436;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .chip:hover { border-color: #00B894; color: #00B894; background: #F0FAF8; }
+
+  .places-section { margin-bottom: 20px; }
+
+  .places-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .place-card {
+    background: white;
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideIn 0.3s ease;
+    border: 1.5px solid #DFF5F0;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .place-order {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #00B894, #00CEC9);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .place-info { flex: 1; }
+  .place-name { font-weight: 600; font-size: 15px; margin-bottom: 2px; color: #2D3436; }
+  .place-region { font-size: 12px; color: #B2BEC3; }
+
+  .place-distance {
+    font-size: 12px;
+    color: #00A878;
+    font-weight: 600;
+    background: #E6F9F3;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .btn-remove {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: #FFF0F0;
+    color: #FF7675;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .btn-remove:hover { background: #FFD6D6; }
+
+  .route-arrow {
+    text-align: center;
+    color: #B2BEC3;
+    font-size: 18px;
+    margin: -4px 0;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #B2BEC3;
+    background: white;
+    border-radius: 14px;
+    border: 2px dashed #DFF5F0;
+  }
+  .empty-icon { font-size: 44px; margin-bottom: 10px; }
+  .empty-text { font-size: 14px; line-height: 1.7; }
+
+  .action-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .btn-route {
+    flex: 1;
+    padding: 16px;
+    background: linear-gradient(135deg, #00B894, #00CEC9);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Prompt', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(0,184,148,0.25);
+  }
+  .btn-route:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+  .btn-route:not(:disabled):active { transform: scale(0.97); }
+
+  .btn-clear {
+    padding: 16px 20px;
+    background: white;
+    color: #636E72;
+    border: 2px solid #E0E0E0;
+    border-radius: 14px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-clear:hover { border-color: #FF7675; color: #FF7675; }
+
+  .map-section {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    overflow: hidden;
+    margin-bottom: 16px;
+    border: 1.5px solid #DFF5F0;
+  }
+
+  .map-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #F0FAF8;
+  }
+
+  .map-title { font-family: 'Prompt', sans-serif; font-weight: 600; font-size: 15px; color: #2D3436; }
+
+  .map-badge {
+    font-size: 12px;
+    background: #E6F9F3;
+    color: #00A878;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  #map {
+    width: 100%;
+    min-height: 220px;
+    background: #F5FFFE;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .summary-section {
+    background: white;
+    border: 1.5px solid #DFF5F0;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  }
+
+  .summary-title {
+    font-family: 'Prompt', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: #00A878;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .summary-item {
+    background: #F5FFFE;
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid #DFF5F0;
+  }
+
+  .summary-label {
+    font-size: 11px;
+    color: #B2BEC3;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .summary-value {
+    font-family: 'Prompt', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #00A878;
+  }
+
+  .summary-unit {
+    font-size: 12px;
+    color: #B2BEC3;
+    margin-left: 3px;
+    font-weight: 400;
+  }
+
+  .btn-share {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #00B894, #00CEC9);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Prompt', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(0,184,148,0.25);
+  }
+  .btn-share:active { transform: scale(0.97); }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #2D3436;
+    color: white;
+    padding: 12px 22px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: transform 0.3s ease;
+    z-index: 999;
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Trip<span>Krung</span></div>
+  <div class="header-sub">วางแผนทริปสั้น<br>ไปกลับสบายใจ 🌿</div>
+</header>
+
+<main>
+  <div class="search-section">
+    <div class="section-title">🗺️ เพิ่มสถานที่</div>
+    <div class="search-box">
+      <input type="text" class="search-input" id="searchInput" placeholder="ค้นหาสถานที่..." autocomplete="off">
+      <button class="btn-add" onclick="addCustomPlace()">+ เพิ่ม</button>
+    </div>
+    <div class="suggestions" id="suggestions"></div>
+    <div class="chips">
+      <div class="chip" onclick="addPlace('วัดพระแก้ว','กรุงเทพ',13.75,100.49)">🏛️ วัดพระแก้ว</div>
+      <div class="chip" onclick="addPlace('ดอยอินทนนท์','เชียงใหม่',18.58,98.48)">⛰️ ดอยอินทนนท์</div>
+      <div class="chip" onclick="addPlace('หาดป่าตอง','ภูเก็ต',7.89,98.29)">🏖️ ป่าตอง</div>
+      <div class="chip" onclick="addPlace('เขาใหญ่','นครราชสีมา',14.43,101.37)">🌿 เขาใหญ่</div>
+      <div class="chip" onclick="addPlace('สะพานมอญ','กาญจนบุรี',15.18,98.00)">🌉 สะพานมอญ</div>
+      <div class="chip" onclick="addPlace('หัวหิน','ประจวบฯ',12.56,99.95)">🌊 หัวหิน</div>
+    </div>
+  </div>
+
+  <div class="places-section">
+    <div class="section-title">📍 สถานที่ในทริป <span id="placeCount" style="color:#B2BEC3;font-size:13px;font-weight:400"></span></div>
+    <div class="places-list" id="placesList">
+      <div class="empty-state">
+        <div class="empty-icon">✈️</div>
+        <div class="empty-text">เพิ่มสถานที่ที่อยากไป<br>แล้วเราจะจัดเส้นทางให้!</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="action-section">
+    <button class="btn-route" id="btnRoute" onclick="optimizeRoute()" disabled>🗺️ จัดเส้นทาง</button>
+    <button class="btn-clear" onclick="clearAll()">ล้าง</button>
+  </div>
+
+  <div class="map-section" id="mapSection" style="display:none">
+    <div class="map-header">
+      <div class="map-title">🗺️ เส้นทางของคุณ</div>
+      <div class="map-badge" id="mapBadge">0 จุด</div>
+    </div>
+    <div id="map"></div>
+  </div>
+
+  <div class="summary-section" id="summarySection" style="display:none">
+    <div class="summary-title">📊 สรุปทริป</div>
+    <div class="summary-grid">
+      <div class="summary-item">
+        <div class="summary-label">จำนวนสถานที่</div>
+        <div class="summary-value" id="sumPlaces">-</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">ระยะทางรวม</div>
+        <div class="summary-value" id="sumDistance">-</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">เวลาขับรถ</div>
+        <div class="summary-value" id="sumTime">-</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">แนะนำ</div>
+        <div class="summary-value" id="sumDays" style="font-size:15px">-</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-share" id="btnShare" style="display:none" onclick="shareTrip()">
+    📤 แชร์แผนทริปนี้
+  </button>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let places = [];
+const db = [
+  { name:'วัดพระแก้ว', region:'กรุงเทพ', lat:13.75, lng:100.49, icon:'🏛️' },
+  { name:'ถนนเยาวราช', region:'กรุงเทพ', lat:13.73, lng:100.51, icon:'🏮' },
+  { name:'จตุจักร', region:'กรุงเทพ', lat:13.79, lng:100.54, icon:'🛍️' },
+  { name:'ดอยอินทนนท์', region:'เชียงใหม่', lat:18.58, lng:98.48, icon:'⛰️' },
+  { name:'ถนนคนเดินเชียงใหม่', region:'เชียงใหม่', lat:18.78, lng:98.98, icon:'🌙' },
+  { name:'ดอยสุเทพ', region:'เชียงใหม่', lat:18.80, lng:98.92, icon:'🏔️' },
+  { name:'หาดป่าตอง', region:'ภูเก็ต', lat:7.89, lng:98.29, icon:'🏖️' },
+  { name:'แหลมพรหมเทพ', region:'ภูเก็ต', lat:7.77, lng:98.30, icon:'🌅' },
+  { name:'เขาใหญ่', region:'นครราชสีมา', lat:14.43, lng:101.37, icon:'🌿' },
+  { name:'สะพานมอญ', region:'กาญจนบุรี', lat:15.18, lng:98.00, icon:'🌉' },
+  { name:'หัวหิน', region:'ประจวบฯ', lat:12.56, lng:99.95, icon:'🌊' },
+  { name:'เกาะเสม็ด', region:'ระยอง', lat:12.64, lng:101.46, icon:'🏝️' },
+  { name:'พัทยา', region:'ชลบุรี', lat:12.92, lng:100.88, icon:'🎡' },
+];
+
+document.getElementById('searchInput').addEventListener('input', function() {
+  const q = this.value.trim();
+  const box = document.getElementById('suggestions');
+  if (!q) { box.style.display='none'; return; }
+  const f = db.filter(p => p.name.includes(q) || p.region.includes(q)).slice(0,5);
+  if (!f.length) { box.style.display='none'; return; }
+  box.innerHTML = f.map(p => `
+    <div class="suggestion-item" onclick="addPlace('${p.name}','${p.region}',${p.lat},${p.lng})">
+      <span style="font-size:20px">${p.icon}</span>
+      <div><div class="suggestion-name">${p.name}</div><div class="suggestion-region">${p.region}</div></div>
+    </div>`).join('');
+  box.style.display = 'block';
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-section')) document.getElementById('suggestions').style.display = 'none';
+});
+
+function addCustomPlace() {
+  const name = document.getElementById('searchInput').value.trim();
+  if (!name) return;
+  addPlace(name, 'กำหนดเอง', 13+Math.random()*6, 99+Math.random()*4);
+}
+
+function addPlace(name, region, lat, lng) {
+  if (places.find(p => p.name===name)) { showToast('⚠️ มีสถานที่นี้แล้ว'); return; }
+  if (places.length >= 10) { showToast('⚠️ เพิ่มได้สูงสุด 10 จุด'); return; }
+  places.push({name, region, lat, lng});
+  document.getElementById('searchInput').value = '';
+  document.getElementById('suggestions').style.display = 'none';
+  renderPlaces();
+  showToast(`✅ เพิ่ม ${name} แล้ว`);
+  hideResults();
+}
+
+function removePlace(i) { places.splice(i,1); renderPlaces(); hideResults(); }
+
+function hideResults() {
+  ['summarySection','mapSection','btnShare'].forEach(id => document.getElementById(id).style.display='none');
+}
+
+function renderPlaces() {
+  const list = document.getElementById('placesList');
+  document.getElementById('placeCount').textContent = places.length ? `(${places.length} จุด)` : '';
+  document.getElementById('btnRoute').disabled = places.length < 2;
+  if (!places.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">✈️</div><div class="empty-text">เพิ่มสถานที่ที่อยากไป<br>แล้วเราจะจัดเส้นทางให้!</div></div>`;
+    return;
+  }
+  list.innerHTML = places.map((p,i) => `
+    ${i>0?'<div class="route-arrow">↓</div>':''}
+    <div class="place-card">
+      <div class="place-order">${i+1}</div>
+      <div class="place-info">
+        <div class="place-name">${p.name}</div>
+        <div class="place-region">📍 ${p.region}</div>
+      </div>
+      ${i>0?`<div class="place-distance">${dist(places[i-1],p)} กม.</div>`:''}
+      <button class="btn-remove" onclick="removePlace(${i})">×</button>
+    </div>`).join('');
+}
+
+function dist(a,b) {
+  const R=6371, dLat=(b.lat-a.lat)*Math.PI/180, dLng=(b.lng-a.lng)*Math.PI/180;
+  const x=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return Math.round(2*R*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)));
+}
+
+function optimizeRoute() {
+  if (places.length < 2) return;
+  const opt=[places[0]], rem=[...places.slice(1)];
+  while(rem.length) {
+    const last=opt[opt.length-1]; let ni=0, minD=Infinity;
+    rem.forEach((p,i)=>{const d=dist(last,p);if(d<minD){minD=d;ni=i;}});
+    opt.push(rem[ni]); rem.splice(ni,1);
+  }
+  places=opt; renderPlaces();
+
+  let total=0;
+  for(let i=1;i<places.length;i++) total+=dist(places[i-1],places[i]);
+  const hrs=Math.round(total/80*10)/10;
+  const days=total>500?'3 วัน 2 คืน':total>200?'2 วัน 1 คืน':'1 วัน';
+
+  document.getElementById('sumPlaces').innerHTML=`${places.length}<span class="summary-unit">จุด</span>`;
+  document.getElementById('sumDistance').innerHTML=`${total}<span class="summary-unit">กม.</span>`;
+  document.getElementById('sumTime').innerHTML=`${hrs}<span class="summary-unit">ชม.</span>`;
+  document.getElementById('sumDays').textContent=days;
+  document.getElementById('mapBadge').textContent=`${places.length} จุด`;
+
+  document.getElementById('map').innerHTML=`
+    <div style="text-align:center;padding:28px 20px">
+      <div style="font-size:40px;margin-bottom:12px">🗺️</div>
+      <div style="font-weight:700;font-size:16px;color:#2D3436;margin-bottom:10px">เส้นทางจัดแล้ว!</div>
+      <div style="font-size:13px;color:#636E72;line-height:1.9">
+        ${places.map((p,i)=>`<span style="color:#00A878;font-weight:600">${i+1}.</span> ${p.name}`).join('<br>')}
+      </div>
+      <div style="font-size:11px;color:#B2BEC3;margin-top:14px">เชื่อม Google Maps API เพื่อดูแผนที่จริง</div>
+    </div>`;
+
+  document.getElementById('mapSection').style.display='block';
+  document.getElementById('summarySection').style.display='block';
+  document.getElementById('btnShare').style.display='flex';
+  showToast('✅ จัดเส้นทางแล้ว!');
+  setTimeout(()=>document.getElementById('mapSection').scrollIntoView({behavior:'smooth'}),300);
+}
+
+function clearAll() {
+  if(!places.length) return;
+  places=[]; renderPlaces(); hideResults(); showToast('🗑️ ล้างทริปแล้ว');
+}
+
+function shareTrip() {
+  const text=`🗺️ แผนทริปของฉัน\n\n`+places.map((p,i)=>`${i+1}. ${p.name} (${p.region})`).join('\n')+`\n\nวางแผนด้วย TripKrung 🌿`;
+  if(navigator.share) navigator.share({title:'แผนทริปของฉัน',text});
+  else navigator.clipboard.writeText(text).then(()=>showToast('📋 คัดลอกแผนแล้ว!'));
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>
